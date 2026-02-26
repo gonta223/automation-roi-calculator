@@ -4,9 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>自動化ROI計算機 — この作業、自動化すべき？</title>
-<meta name="description" content="手作業にかかる時間と頻度を入力するだけ。自動化の損益分岐点を即座に計算して、xkcd風チャートで可視化します。">
+<meta name="description" content="手作業にかかる時間と頻度を入力するだけ。自動化の損益分岐点を即座に計算して、チャートで可視化します。">
 <meta property="og:title" content="自動化ROI計算機">
-<meta property="og:description" content="この作業、自動化すべき？ 損益分岐点を即計算。">
+<meta property="og:description" content="この作業、自動化すべき？ 損益分岐点を即計算。エンジニアあるあるを数字で解決。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://automation-roi-calculator-blond.vercel.app/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="自動化ROI計算機">
+<meta name="twitter:description" content="この作業、自動化すべき？ 損益分岐点を即計算。">
+<meta name="twitter:image" content="https://automation-roi-calculator-blond.vercel.app/og.png">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -25,67 +31,25 @@ h1 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.subtitle {
-  text-align: center;
-  color: #888;
-  font-size: 14px;
-  margin-bottom: 32px;
-}
+.subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 32px; }
 .meme-quote {
-  text-align: center;
-  color: #666;
-  font-size: 13px;
-  font-style: italic;
-  margin-bottom: 24px;
-  padding: 12px;
-  border-left: 3px solid #333;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
+  text-align: center; color: #666; font-size: 13px; font-style: italic;
+  margin-bottom: 24px; padding: 12px; border-left: 3px solid #333;
+  max-width: 500px; margin-left: auto; margin-right: auto;
 }
-
-/* --- Input Section --- */
 .input-section {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+  background: #141414; border: 1px solid #2a2a2a; border-radius: 12px;
+  padding: 24px; margin-bottom: 24px;
 }
-.input-section h2 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #ccc;
-}
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-@media (max-width: 600px) {
-  .form-grid { grid-template-columns: 1fr; }
-}
+.input-section h2 { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #ccc; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
 .form-group { display: flex; flex-direction: column; }
-.form-group label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #aaa;
-  margin-bottom: 6px;
-}
-.form-group .unit {
-  font-size: 11px;
-  color: #666;
-  margin-top: 4px;
-}
+.form-group label { font-size: 13px; font-weight: 500; color: #aaa; margin-bottom: 6px; }
+.form-group .unit { font-size: 11px; color: #666; margin-top: 4px; }
 input[type="number"], select {
-  background: #0a0a0a;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #e0e0e0;
-  font-size: 16px;
-  padding: 10px 12px;
-  width: 100%;
+  background: #0a0a0a; border: 1px solid #333; border-radius: 8px;
+  color: #e0e0e0; font-size: 16px; padding: 10px 12px; width: 100%;
   -moz-appearance: textfield;
 }
 input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -93,195 +57,140 @@ input[type="number"]:focus, select:focus { outline: none; border-color: #60a5fa;
 select { cursor: pointer; }
 select option { background: #141414; }
 
-.preset-section {
-  margin-bottom: 20px;
+/* Preset tabs */
+.preset-tabs { margin-bottom: 20px; }
+.preset-tabs label { font-size: 13px; color: #aaa; display: block; margin-bottom: 8px; }
+.tab-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+.tab-category {
+  font-size: 11px; color: #666; padding: 4px 10px; background: #111;
+  border: 1px solid #222; border-radius: 14px; cursor: pointer; transition: all 0.2s;
 }
-.preset-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
+.tab-category.active { background: #1a1a3a; border-color: #60a5fa; color: #60a5fa; }
+.preset-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .preset-chip {
-  padding: 6px 14px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a4a;
-  border-radius: 20px;
-  font-size: 12px;
-  color: #a0a0d0;
-  cursor: pointer;
-  transition: all 0.2s;
+  padding: 6px 14px; background: #1a1a2e; border: 1px solid #2a2a4a;
+  border-radius: 20px; font-size: 12px; color: #a0a0d0; cursor: pointer; transition: all 0.2s;
 }
-.preset-chip:hover {
-  background: #2a2a4e;
-  border-color: #60a5fa;
-  color: #60a5fa;
-}
+.preset-chip:hover { background: #2a2a4e; border-color: #60a5fa; color: #60a5fa; }
+.preset-chip.active { background: #2a2a5e; border-color: #60a5fa; color: #60a5fa; }
+.preset-group { display: none; }
+.preset-group.active { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
-/* --- Button --- */
 .btn-calc {
-  display: block;
-  width: 100%;
-  padding: 14px;
+  display: block; width: 100%; padding: 14px;
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  margin-top: 20px;
+  color: white; border: none; border-radius: 10px;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.2s; margin-top: 20px;
 }
 .btn-calc:hover { opacity: 0.9; }
 
-/* --- Results --- */
+/* Results */
 .results { display: none; margin-top: 32px; }
 .results.active { display: block; animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Verdict */
 .verdict-card {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 28px;
-  text-align: center;
-  margin-bottom: 24px;
+  background: #141414; border: 1px solid #2a2a2a; border-radius: 12px;
+  padding: 28px; text-align: center; margin-bottom: 24px;
 }
 .verdict-emoji { font-size: 48px; margin-bottom: 8px; }
-.verdict-text {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
+.verdict-text { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
 .verdict-sub { font-size: 14px; color: #888; line-height: 1.6; }
 
-/* Stats */
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px; margin-bottom: 24px;
 }
 .stat-box {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 10px;
-  padding: 16px;
-  text-align: center;
+  background: #141414; border: 1px solid #2a2a2a; border-radius: 10px;
+  padding: 16px; text-align: center;
 }
-.stat-value {
-  font-size: 22px;
-  font-weight: 700;
-  color: #60a5fa;
-}
-.stat-label {
-  font-size: 12px;
-  color: #888;
-  margin-top: 4px;
-}
+.stat-value { font-size: 22px; font-weight: 700; color: #60a5fa; }
+.stat-label { font-size: 12px; color: #888; margin-top: 4px; }
 
-/* Chart */
 .chart-section {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+  background: #141414; border: 1px solid #2a2a2a; border-radius: 12px;
+  padding: 24px; margin-bottom: 24px;
 }
-.chart-section h2 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #ccc;
-}
+.chart-section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #ccc; }
 canvas { width: 100% !important; max-height: 320px; }
 
-/* Breakdown */
-.breakdown-section {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+.section-card {
+  background: #141414; border: 1px solid #2a2a2a; border-radius: 12px;
+  padding: 24px; margin-bottom: 24px;
 }
-.breakdown-section h2 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #ccc;
-}
-.breakdown-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.breakdown-table th, .breakdown-table td {
-  padding: 10px 12px;
-  text-align: left;
-  border-bottom: 1px solid #222;
-  font-size: 13px;
-}
-.breakdown-table th {
-  color: #888;
-  font-weight: 500;
-  font-size: 12px;
-}
-.highlight-row { background: #0c1a3d; }
-.text-green { color: #4ade80; }
-.text-red { color: #f87171; }
-.text-yellow { color: #fbbf24; }
-.text-blue { color: #60a5fa; }
+.section-card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #ccc; }
 
-/* Tips */
-.tips-section {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+.breakdown-table { width: 100%; border-collapse: collapse; }
+.breakdown-table th, .breakdown-table td {
+  padding: 10px 12px; text-align: left; border-bottom: 1px solid #222; font-size: 13px;
 }
-.tips-section h2 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #ccc;
-}
+.breakdown-table th { color: #888; font-weight: 500; font-size: 12px; }
+.highlight-row { background: #0c1a3d; }
+
 .tip-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid #222;
-  font-size: 14px;
-  line-height: 1.5;
+  display: flex; gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid #222; font-size: 14px; line-height: 1.5;
 }
 .tip-item:last-child { border-bottom: none; }
 .tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
 
-/* Footer */
+/* Recipe section */
+.recipe-card {
+  background: #0c1a2e; border: 1px solid #1a3a5a; border-radius: 10px;
+  padding: 16px; margin-bottom: 12px;
+}
+.recipe-card h3 { font-size: 14px; font-weight: 600; color: #60a5fa; margin-bottom: 8px; }
+.recipe-card p { font-size: 13px; color: #aaa; line-height: 1.5; margin-bottom: 8px; }
+.recipe-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; margin-right: 6px;
+}
+.recipe-tag.easy { background: #052e16; color: #4ade80; }
+.recipe-tag.medium { background: #422006; color: #fbbf24; }
+.recipe-tag.hard { background: #450a0a; color: #f87171; }
+.recipe-tag.tool { background: #0c1a3d; color: #60a5fa; }
+
+/* Share section */
+.share-section {
+  background: linear-gradient(135deg, #141428, #1a1a2e);
+  border: 1px solid #2a2a5a; border-radius: 12px;
+  padding: 24px; margin-bottom: 24px; text-align: center;
+}
+.share-section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #ccc; }
+.share-preview {
+  background: #0a0a0a; border: 1px solid #333; border-radius: 10px;
+  padding: 16px; margin-bottom: 16px; text-align: left; font-size: 14px;
+  line-height: 1.6; color: #ccc; max-width: 500px; margin-left: auto; margin-right: auto;
+}
+.share-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.share-btn {
+  padding: 10px 20px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.share-btn.x { background: #1a1a1a; color: #e0e0e0; border: 1px solid #333; }
+.share-btn.x:hover { background: #222; }
+.share-btn.copy { background: #2a2a4e; color: #a0a0ff; border: 1px solid #3a3a6a; }
+.share-btn.copy:hover { background: #3a3a6e; }
+.share-btn.link { background: #1a2a1a; color: #4ade80; border: 1px solid #2a4a2a; }
+.share-btn.link:hover { background: #2a3a2a; }
+.copied-toast {
+  display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #4ade80; color: #000; padding: 10px 24px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; z-index: 999; animation: fadeIn 0.3s ease;
+}
+
 .footer {
-  text-align: center;
-  padding: 24px;
-  color: #555;
-  font-size: 12px;
+  text-align: center; padding: 24px; color: #555; font-size: 12px;
 }
 .badges {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 8px;
-  flex-wrap: wrap;
+  display: flex; justify-content: center; gap: 12px; margin-top: 8px; flex-wrap: wrap;
 }
 .trust-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 20px;
-  font-size: 11px;
-  color: #888;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; background: #141414; border: 1px solid #2a2a2a;
+  border-radius: 20px; font-size: 11px; color: #888;
 }
 </style>
 </head>
@@ -296,15 +205,51 @@ canvas { width: 100% !important; max-height: 320px; }
   </div>
 
   <div class="input-section">
-    <div class="preset-section">
-      <label style="font-size:13px;color:#aaa;">よくある作業プリセット:</label>
-      <div class="preset-chips">
-        <span class="preset-chip" onclick="applyPreset(5, 'daily', 30, 'min')">日次レポート作成 (5分/日)</span>
-        <span class="preset-chip" onclick="applyPreset(15, 'weekly', 60, 'min')">週次データ集計 (15分/週)</span>
-        <span class="preset-chip" onclick="applyPreset(2, 'daily', 120, 'min')">メール振り分け (2分/日)</span>
-        <span class="preset-chip" onclick="applyPreset(30, 'weekly', 180, 'min')">請求書処理 (30分/週)</span>
-        <span class="preset-chip" onclick="applyPreset(10, 'daily', 90, 'min')">テストデータ作成 (10分/日)</span>
-        <span class="preset-chip" onclick="applyPreset(60, 'monthly', 480, 'min')">月次レポート (60分/月)</span>
+    <div class="preset-tabs">
+      <label>職種別プリセット:</label>
+      <div class="tab-row">
+        <span class="tab-category active" onclick="showCategory('general')">汎用</span>
+        <span class="tab-category" onclick="showCategory('engineer')">エンジニア</span>
+        <span class="tab-category" onclick="showCategory('sales')">営業</span>
+        <span class="tab-category" onclick="showCategory('accounting')">経理</span>
+        <span class="tab-category" onclick="showCategory('marketing')">マーケ</span>
+        <span class="tab-category" onclick="showCategory('cs')">CS</span>
+      </div>
+      <div class="preset-group active" id="cat-general">
+        <span class="preset-chip" onclick="applyPreset(5,'daily',30,'min','日次レポート作成')">日次レポート作成 (5分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(15,'weekly',60,'min','週次データ集計')">週次データ集計 (15分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(2,'daily',120,'min','メール振り分け')">メール振り分け (2分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(60,'monthly',480,'min','月次レポート')">月次レポート (60分/月)</span>
+      </div>
+      <div class="preset-group" id="cat-engineer">
+        <span class="preset-chip" onclick="applyPreset(10,'daily',90,'min','テストデータ作成')">テストデータ作成 (10分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(5,'daily',60,'min','ログ確認・監視')">ログ確認・監視 (5分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(15,'daily',180,'min','デプロイ作業')">デプロイ作業 (15分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(20,'weekly',120,'min','コードレビュー準備')">コードレビュー準備 (20分/週)</span>
+      </div>
+      <div class="preset-group" id="cat-sales">
+        <span class="preset-chip" onclick="applyPreset(10,'daily',120,'min','CRM入力')">CRM入力 (10分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(30,'weekly',180,'min','見積書作成')">見積書作成 (30分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(15,'weekly',90,'min','商談報告書作成')">商談報告書 (15分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(20,'weekly',150,'min','リード管理')">リード管理 (20分/週)</span>
+      </div>
+      <div class="preset-group" id="cat-accounting">
+        <span class="preset-chip" onclick="applyPreset(30,'weekly',180,'min','請求書処理')">請求書処理 (30分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(45,'monthly',360,'min','経費精算チェック')">経費精算チェック (45分/月)</span>
+        <span class="preset-chip" onclick="applyPreset(20,'weekly',120,'min','入金消込')">入金消込 (20分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(60,'monthly',480,'min','月次決算資料')">月次決算資料 (60分/月)</span>
+      </div>
+      <div class="preset-group" id="cat-marketing">
+        <span class="preset-chip" onclick="applyPreset(15,'daily',120,'min','SNS投稿')">SNS投稿 (15分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(30,'weekly',180,'min','広告レポート')">広告レポート (30分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(20,'weekly',150,'min','競合モニタリング')">競合モニタリング (20分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(10,'daily',90,'min','アクセス解析')">アクセス解析 (10分/日)</span>
+      </div>
+      <div class="preset-group" id="cat-cs">
+        <span class="preset-chip" onclick="applyPreset(5,'daily',60,'min','FAQ回答テンプレ')">FAQ回答テンプレ (5分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(10,'daily',120,'min','問い合わせ分類')">問い合わせ分類 (10分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(15,'weekly',90,'min','顧客満足度集計')">顧客満足度集計 (15分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(20,'weekly',150,'min','エスカレ判定')">エスカレ判定 (20分/週)</span>
       </div>
     </div>
 
@@ -338,7 +283,6 @@ canvas { width: 100% !important; max-height: 320px; }
         </select>
       </div>
     </div>
-
     <div class="form-grid" style="margin-top:16px;">
       <div class="form-group">
         <label>自動化後の残作業時間（確認・手直し等）</label>
@@ -355,41 +299,48 @@ canvas { width: 100% !important; max-height: 320px; }
         </select>
       </div>
     </div>
-
     <button class="btn-calc" onclick="calculate()">計算する</button>
   </div>
 
   <!-- Results -->
   <div class="results" id="results">
-
     <div class="verdict-card" id="verdictCard">
       <div class="verdict-emoji" id="verdictEmoji"></div>
       <div class="verdict-text" id="verdictText"></div>
       <div class="verdict-sub" id="verdictSub"></div>
     </div>
-
     <div class="stats-grid" id="statsGrid"></div>
-
     <div class="chart-section">
       <h2>累積時間の推移（手作業 vs 自動化）</h2>
       <canvas id="roiChart"></canvas>
     </div>
-
-    <div class="breakdown-section">
+    <div class="section-card">
       <h2>詳細内訳</h2>
       <table class="breakdown-table">
-        <thead>
-          <tr><th>項目</th><th>手作業</th><th>自動化</th><th>差分</th></tr>
-        </thead>
+        <thead><tr><th>項目</th><th>手作業</th><th>自動化</th><th>差分</th></tr></thead>
         <tbody id="breakdownBody"></tbody>
       </table>
     </div>
-
-    <div class="tips-section" id="tipsSection">
+    <div class="section-card" id="recipeSection" style="display:none;">
+      <h2>自動化レシピ</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:16px;">この作業を自動化するなら、こんな方法があります:</p>
+      <div id="recipeList"></div>
+    </div>
+    <div class="section-card" id="tipsSection">
       <h2>アドバイス</h2>
       <div id="tipsList"></div>
     </div>
 
+    <!-- Share -->
+    <div class="share-section">
+      <h2>結果をシェア</h2>
+      <div class="share-preview" id="sharePreview"></div>
+      <div class="share-btns">
+        <button class="share-btn x" onclick="shareToX()">&#x1d54f; にポスト</button>
+        <button class="share-btn copy" onclick="copyShareText()">テキストをコピー</button>
+        <button class="share-btn link" onclick="copyShareLink()">共有リンクをコピー</button>
+      </div>
+    </div>
   </div>
 
   <div class="footer">
@@ -399,62 +350,80 @@ canvas { width: 100% !important; max-height: 320px; }
       <span class="trust-badge">&#x1f4bb; ブラウザ完結</span>
       <span class="trust-badge">&#x1f6ab; データ送信なし</span>
     </div>
+    <p style="margin-top:12px;color:#444;">
+      Built by <a href="https://x.com/SuguruKun_ai" style="color:#60a5fa;text-decoration:none;">@SuguruKun_ai</a> with Claude Code
+    </p>
   </div>
-
 </div>
 
+<div class="copied-toast" id="copiedToast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js"></script>
 <script>
-// ============================================================
-// Automation ROI Calculator
-// ============================================================
-
 let chart = null;
+let lastResult = null;
 
-function applyPreset(taskMin, freq, autoMin, autoUnit) {
+// --- URL params on load ---
+window.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(window.location.search);
+  if (p.has('t')) {
+    document.getElementById('taskTime').value = p.get('t');
+    document.getElementById('taskFreq').value = p.get('f') || 'daily';
+    document.getElementById('autoTime').value = p.get('a');
+    document.getElementById('autoTimeUnit').value = p.get('au') || 'min';
+    document.getElementById('residualTime').value = p.get('r') || 0;
+    document.getElementById('maintFreq').value = p.get('m') || 'mid';
+    calculate();
+  }
+});
+
+function showCategory(cat) {
+  document.querySelectorAll('.tab-category').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.preset-group').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('cat-' + cat).classList.add('active');
+}
+
+function applyPreset(taskMin, freq, autoMin, autoUnit, name) {
   document.getElementById('taskTime').value = taskMin;
   document.getElementById('taskFreq').value = freq;
   document.getElementById('autoTime').value = autoMin;
   document.getElementById('autoTimeUnit').value = autoUnit;
   document.getElementById('residualTime').value = 0;
+  document.querySelectorAll('.preset-chip').forEach(el => el.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
 }
 
 function getFreqPerYear(freq) {
-  switch(freq) {
-    case 'daily': return 365;
-    case 'weekdays': return 260;
-    case 'weekly': return 52;
-    case 'biweekly': return 26;
-    case 'monthly': return 12;
-    default: return 52;
-  }
+  const map = { daily: 365, weekdays: 260, weekly: 52, biweekly: 26, monthly: 12 };
+  return map[freq] || 52;
 }
-
 function getFreqLabel(freq) {
-  switch(freq) {
-    case 'daily': return '毎日';
-    case 'weekdays': return '平日';
-    case 'weekly': return '週1';
-    case 'biweekly': return '隔週';
-    case 'monthly': return '月1';
-    default: return freq;
-  }
+  const map = { daily: '毎日', weekdays: '平日', weekly: '週1', biweekly: '隔週', monthly: '月1' };
+  return map[freq] || freq;
 }
-
 function getMaintMinPerMonth(maint) {
-  switch(maint) {
-    case 'none': return 0;
-    case 'low': return 15;
-    case 'mid': return 30;
-    case 'high': return 120;
-    default: return 30;
-  }
+  const map = { none: 0, low: 15, mid: 30, high: 120 };
+  return map[maint] || 30;
 }
-
 function formatTime(minutes) {
   if (minutes < 60) return Math.round(minutes) + '分';
-  if (minutes < 1440) return (minutes / 60).toFixed(1) + '時間';
-  return (minutes / 60).toFixed(0) + '時間';
+  return (minutes / 60).toFixed(1).replace(/\.0$/, '') + '時間';
+}
+function escapeHtml(s) {
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+function buildShareURL() {
+  const p = new URLSearchParams();
+  p.set('t', document.getElementById('taskTime').value);
+  p.set('f', document.getElementById('taskFreq').value);
+  p.set('a', document.getElementById('autoTime').value);
+  p.set('au', document.getElementById('autoTimeUnit').value);
+  p.set('r', document.getElementById('residualTime').value);
+  p.set('m', document.getElementById('maintFreq').value);
+  return window.location.origin + window.location.pathname + '?' + p.toString();
 }
 
 function calculate() {
@@ -468,70 +437,63 @@ function calculate() {
   if (!taskTime || taskTime <= 0) { alert('作業時間を入力してください'); return; }
   if (!autoTimeRaw || autoTimeRaw <= 0) { alert('自動化時間を入力してください'); return; }
 
-  // Convert all to minutes
   const autoTime = autoUnit === 'hour' ? autoTimeRaw * 60 : autoTimeRaw;
   const timesPerYear = getFreqPerYear(freq);
   const timesPerMonth = timesPerYear / 12;
   const maintPerMonth = getMaintMinPerMonth(maintFreq);
 
-  // Manual: time per occurrence * frequency
   const manualPerYear = taskTime * timesPerYear;
   const manualPerMonth = taskTime * timesPerMonth;
 
-  // Automated: initial cost + residual per occurrence + maintenance
   const autoSavingsPerOccurrence = taskTime - residual;
   const netSavingsPerMonth = (autoSavingsPerOccurrence * timesPerMonth) - maintPerMonth;
-  const netSavingsPerYear = netSavingsPerMonth * 12;
 
-  // Break-even point (in months)
   let breakEvenMonths = null;
-  if (netSavingsPerMonth > 0) {
-    breakEvenMonths = autoTime / netSavingsPerMonth;
-  }
+  if (netSavingsPerMonth > 0) breakEvenMonths = autoTime / netSavingsPerMonth;
 
-  // 1-year totals
   const manualTotal1Y = manualPerYear;
   const autoTotal1Y = autoTime + (residual * timesPerYear) + (maintPerMonth * 12);
   const savings1Y = manualTotal1Y - autoTotal1Y;
 
-  // 3-year totals
   const manualTotal3Y = manualPerYear * 3;
   const autoTotal3Y = autoTime + (residual * timesPerYear * 3) + (maintPerMonth * 36);
   const savings3Y = manualTotal3Y - autoTotal3Y;
 
-  // ROI percentage
   const roi1Y = autoTime > 0 ? ((savings1Y / autoTime) * 100) : 0;
+
+  const hourlyRate = 4000;
+  const moneySaved1Y = Math.round((savings1Y / 60) * hourlyRate);
+
+  lastResult = { taskTime, freq, autoTime, residual, maintFreq, breakEvenMonths, savings1Y, savings3Y, roi1Y, moneySaved1Y, manualTotal1Y, autoTotal1Y, manualTotal3Y, autoTotal3Y };
+
+  // Update URL without reload
+  const url = buildShareURL();
+  window.history.replaceState(null, '', url);
 
   // --- Verdict ---
   let verdict, emoji, sub, verdictColor;
   if (breakEvenMonths !== null && breakEvenMonths <= 1) {
-    emoji = '&#x1f680;';
-    verdict = '今すぐ自動化すべき！';
-    sub = `${formatTime(autoTime)}の投資が、わずか${breakEvenMonths.toFixed(1)}ヶ月で回収。1年で${formatTime(savings1Y)}の節約。`;
+    emoji = '&#x1f680;'; verdict = '今すぐ自動化すべき！';
+    sub = formatTime(autoTime) + 'の投資が、わずか' + breakEvenMonths.toFixed(1) + 'ヶ月で回収。1年で' + formatTime(savings1Y) + 'の節約。';
     verdictColor = '#4ade80';
   } else if (breakEvenMonths !== null && breakEvenMonths <= 3) {
-    emoji = '&#x2705;';
-    verdict = '自動化する価値あり';
-    sub = `${breakEvenMonths.toFixed(1)}ヶ月で元が取れる。3ヶ月以内の回収は十分に合理的。`;
+    emoji = '&#x2705;'; verdict = '自動化する価値あり';
+    sub = breakEvenMonths.toFixed(1) + 'ヶ月で元が取れる。3ヶ月以内の回収は十分に合理的。';
     verdictColor = '#4ade80';
   } else if (breakEvenMonths !== null && breakEvenMonths <= 6) {
-    emoji = '&#x1f914;';
-    verdict = '判断が分かれるライン';
-    sub = `回収まで${breakEvenMonths.toFixed(1)}ヶ月。学習目的やストレス軽減も考慮して判断を。`;
+    emoji = '&#x1f914;'; verdict = '判断が分かれるライン';
+    sub = '回収まで' + breakEvenMonths.toFixed(1) + 'ヶ月。学習目的やストレス軽減も考慮して判断を。';
     verdictColor = '#fbbf24';
   } else if (breakEvenMonths !== null && breakEvenMonths <= 12) {
-    emoji = '&#x26a0;&#xfe0f;';
-    verdict = '慎重に検討を';
-    sub = `回収に${breakEvenMonths.toFixed(1)}ヶ月かかる。部分自動化や、もっと簡単な方法がないか再検討。`;
+    emoji = '&#x26a0;&#xfe0f;'; verdict = '慎重に検討を';
+    sub = '回収に' + breakEvenMonths.toFixed(1) + 'ヶ月かかる。部分自動化や、もっと簡単な方法がないか再検討。';
     verdictColor = '#f59e0b';
   } else {
-    emoji = '&#x274c;';
-    verdict = '手作業のままでOK';
-    sub = breakEvenMonths ? `回収に${breakEvenMonths.toFixed(1)}ヶ月。自動化コストが節約を上回る可能性大。` : 'メンテナンスコストが節約分を上回っています。';
+    emoji = '&#x274c;'; verdict = '手作業のままでOK';
+    sub = breakEvenMonths ? '回収に' + breakEvenMonths.toFixed(1) + 'ヶ月。自動化コストが節約を上回る可能性大。' : 'メンテナンスコストが節約分を上回っています。';
     verdictColor = '#f87171';
   }
 
-  const vc = document.getElementById('verdictCard');
   document.getElementById('verdictEmoji').innerHTML = emoji;
   document.getElementById('verdictText').textContent = verdict;
   document.getElementById('verdictText').style.color = verdictColor;
@@ -543,12 +505,12 @@ function calculate() {
   addStat(sg, breakEvenMonths ? breakEvenMonths.toFixed(1) + 'ヶ月' : '∞', '損益分岐点', breakEvenMonths && breakEvenMonths <= 3 ? '#4ade80' : breakEvenMonths && breakEvenMonths <= 6 ? '#fbbf24' : '#f87171');
   addStat(sg, formatTime(savings1Y), '1年間の節約', savings1Y > 0 ? '#4ade80' : '#f87171');
   addStat(sg, roi1Y > 0 ? '+' + Math.round(roi1Y) + '%' : Math.round(roi1Y) + '%', '1年ROI', roi1Y > 0 ? '#60a5fa' : '#f87171');
-  addStat(sg, formatTime(savings3Y), '3年間の節約', savings3Y > 0 ? '#4ade80' : '#f87171');
+  addStat(sg, '&#xa5;' + Math.abs(moneySaved1Y).toLocaleString(), '1年の金額換算', moneySaved1Y > 0 ? '#4ade80' : '#f87171');
 
   // --- Chart ---
   drawChart(taskTime, residual, timesPerMonth, autoTime, maintPerMonth, breakEvenMonths);
 
-  // --- Breakdown Table ---
+  // --- Breakdown ---
   const bb = document.getElementById('breakdownBody');
   bb.innerHTML = '';
   addRow(bb, '1回あたり作業時間', formatTime(taskTime), formatTime(residual), formatTime(taskTime - residual) + ' 節約', false);
@@ -559,48 +521,108 @@ function calculate() {
   addRow(bb, '1年間の合計', formatTime(manualTotal1Y), formatTime(autoTotal1Y), (savings1Y >= 0 ? '' : '- ') + formatTime(Math.abs(savings1Y)), true);
   addRow(bb, '3年間の合計', formatTime(manualTotal3Y), formatTime(autoTotal3Y), (savings3Y >= 0 ? '' : '- ') + formatTime(Math.abs(savings3Y)), true);
 
+  // --- Recipes ---
+  showRecipes(taskTime, freq, autoTime);
+
   // --- Tips ---
   const tl = document.getElementById('tipsList');
   tl.innerHTML = '';
   if (breakEvenMonths && breakEvenMonths > 6) {
-    addTip(tl, '&#x1f4a1;', '部分自動化を検討: 全工程を自動化せず、最も時間がかかるステップだけ自動化すると構築コストが大幅に下がることがある');
-    addTip(tl, '&#x1f916;', 'AI活用で構築を高速化: Claude CodeやGitHub Copilotを使えば、自動化スクリプトの構築時間を1/3〜1/5に短縮できる');
+    addTip(tl, '&#x1f4a1;', '部分自動化を検討: 全工程ではなく、最も時間がかかるステップだけ自動化すると構築コストが大幅に下がる');
+    addTip(tl, '&#x1f916;', 'AI活用で構築を高速化: Claude CodeやGitHub Copilotで自動化スクリプトの構築時間を1/3〜1/5に短縮できる');
   }
-  if (autoTime > 120) {
-    addTip(tl, '&#x23f0;', '構築時間の見積もりを再確認: エンジニアは自動化時間を過小評価しがち。テスト・エッジケース対応・ドキュメント作成も含めて見積もりを');
-  }
-  if (maintPerMonth > 60) {
-    addTip(tl, '&#x1f527;', 'メンテナンスコストに注意: 外部API連携やスクレイピングは仕様変更でメンテ頻度が上がりやすい。API公式SDKやWebhookの活用を検討');
-  }
-  if (taskTime <= 2 && timesPerYear >= 260) {
-    addTip(tl, '&#x26a1;', 'マイクロタスクの罠: 1回2分以下の作業は「気にならない」けど年間だと' + formatTime(manualPerYear) + '。ショートカットキーやテンプレートで半自動化するのが最適解かも');
-  }
-  if (breakEvenMonths && breakEvenMonths <= 1) {
-    addTip(tl, '&#x1f389;', '高ROI案件。自動化後は同じパターンを他の作業にも横展開できないか検討を');
-  }
-  if (savings1Y > 0) {
-    const hourlyRate = 4000; // エンジニア時給想定
-    const moneySaved = Math.round((savings1Y / 60) * hourlyRate);
-    addTip(tl, '&#x1f4b0;', '金額換算（時給' + hourlyRate.toLocaleString() + '円想定）: 1年で約' + moneySaved.toLocaleString() + '円分の時間を節約');
-  }
+  if (autoTime > 120) addTip(tl, '&#x23f0;', '構築時間の見積もりを再確認: テスト・エッジケース・ドキュメント作成も含めて見積もりを');
+  if (maintPerMonth > 60) addTip(tl, '&#x1f527;', 'メンテコストに注意: 外部API連携やスクレイピングは仕様変更でメンテ頻度が上がりやすい');
+  if (taskTime <= 2 && timesPerYear >= 260) addTip(tl, '&#x26a1;', 'マイクロタスクの罠: 1回2分以下でも年間' + formatTime(manualPerYear) + '。ショートカットキーやテンプレートで半自動化が最適解かも');
+  if (breakEvenMonths && breakEvenMonths <= 1) addTip(tl, '&#x1f389;', '高ROI案件。同じパターンを他の作業にも横展開できないか検討を');
+  if (savings1Y > 0) addTip(tl, '&#x1f4b0;', '金額換算（時給4,000円想定）: 1年で約' + moneySaved1Y.toLocaleString() + '円分の時間を節約');
   addTip(tl, '&#x1f4ca;', 'xkcd "Is It Worth the Time?" の法則: 週5回の作業なら、1回1分短縮するだけで5年で21時間の節約になる');
 
-  // Show
+  // --- Share preview ---
+  const shareText = buildShareText();
+  document.getElementById('sharePreview').textContent = shareText;
+
   document.getElementById('results').classList.add('active');
   document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function showRecipes(taskTime, freq, autoTime) {
+  const rs = document.getElementById('recipeSection');
+  const rl = document.getElementById('recipeList');
+  rl.innerHTML = '';
+  rs.style.display = 'block';
+
+  // Context-aware recipes
+  const isDaily = (freq === 'daily' || freq === 'weekdays');
+  const isQuick = taskTime <= 10;
+  const isLong = autoTime > 240;
+
+  addRecipe(rl, 'Google Apps Script (GAS)', 'Googleスプレッドシート・Gmail・カレンダーとの連携に最適。無料で使えて、定期実行トリガーも設定可能。', ['easy', 'tool:Google Workspace']);
+
+  if (isDaily && isQuick) {
+    addRecipe(rl, 'Zapier / Make', 'コードなしで異なるサービスを接続。「メール受信→Slack通知→スプレッドシート記録」のような定型フローに最適。', ['easy', 'tool:ノーコード']);
+  }
+
+  addRecipe(rl, 'Claude Code + スキル', 'Claude Codeのスキル機能で、複雑な処理をワンコマンド化。ファイル操作・API呼び出し・データ加工まで対応。', ['medium', 'tool:AI']);
+
+  if (isLong) {
+    addRecipe(rl, 'Python + cron', '複雑なデータ処理やAPI連携はPythonスクリプト + cronで定期実行。学習コストはあるが自由度が最も高い。', ['hard', 'tool:Python']);
+  }
+
+  addRecipe(rl, 'ブラウザ拡張 / Tampermonkey', 'Web画面上の繰り返し操作を自動化。フォーム入力・ボタンクリック・データ抽出に。', ['medium', 'tool:ブラウザ']);
+}
+
+function addRecipe(container, title, desc, tags) {
+  let tagHtml = '';
+  tags.forEach(t => {
+    if (t.startsWith('tool:')) tagHtml += '<span class="recipe-tag tool">' + escapeHtml(t.replace('tool:','')) + '</span>';
+    else tagHtml += '<span class="recipe-tag ' + escapeHtml(t) + '">' + (t === 'easy' ? '簡単' : t === 'medium' ? '中級' : '上級') + '</span>';
+  });
+  container.innerHTML += '<div class="recipe-card"><h3>' + escapeHtml(title) + '</h3><p>' + escapeHtml(desc) + '</p><div>' + tagHtml + '</div></div>';
+}
+
+function buildShareText() {
+  if (!lastResult) return '';
+  const r = lastResult;
+  const be = r.breakEvenMonths ? r.breakEvenMonths.toFixed(1) + 'ヶ月' : '回収不可';
+  return '自動化ROI計算してみた\n\n' +
+    '作業: ' + formatTime(r.taskTime) + ' × ' + getFreqLabel(r.freq) + '\n' +
+    '自動化コスト: ' + formatTime(r.autoTime) + '\n' +
+    '損益分岐点: ' + be + '\n' +
+    '1年間の節約: ' + formatTime(r.savings1Y) + '（約' + Math.abs(r.moneySaved1Y).toLocaleString() + '円）\n' +
+    'ROI: ' + (r.roi1Y > 0 ? '+' : '') + Math.round(r.roi1Y) + '%\n\n' +
+    buildShareURL();
+}
+
+function shareToX() {
+  const text = encodeURIComponent(buildShareText());
+  window.open('https://x.com/intent/tweet?text=' + text, '_blank');
+}
+
+function copyShareText() {
+  navigator.clipboard.writeText(buildShareText()).then(() => showToast('テキストをコピーしました'));
+}
+
+function copyShareLink() {
+  navigator.clipboard.writeText(buildShareURL()).then(() => showToast('共有リンクをコピーしました'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('copiedToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2000);
 }
 
 function addStat(container, value, label, color) {
   container.innerHTML += '<div class="stat-box"><div class="stat-value" style="color:' + color + '">' + value + '</div><div class="stat-label">' + label + '</div></div>';
 }
-
 function addRow(tbody, label, manual, auto, diff, highlight) {
   const cls = highlight ? ' class="highlight-row"' : '';
   tbody.innerHTML += '<tr' + cls + '><td>' + label + '</td><td>' + manual + '</td><td>' + auto + '</td><td>' + diff + '</td></tr>';
 }
-
 function addTip(container, icon, text) {
-  container.innerHTML += '<div class="tip-item"><span class="tip-icon">' + icon + '</span><span>' + text + '</span></div>';
+  container.innerHTML += '<div class="tip-item"><span class="tip-icon">' + icon + '</span><span>' + escapeHtml(text) + '</span></div>';
 }
 
 function drawChart(taskTime, residual, timesPerMonth, autoTime, maintPerMonth, breakEvenMonths) {
@@ -608,14 +630,20 @@ function drawChart(taskTime, residual, timesPerMonth, autoTime, maintPerMonth, b
   if (chart) chart.destroy();
 
   const months = 24;
-  const labels = [];
-  const manualData = [];
-  const autoData = [];
-
+  const labels = [], manualData = [], autoData = [];
   for (let m = 0; m <= months; m++) {
     labels.push(m + 'ヶ月');
     manualData.push(Math.round(taskTime * timesPerMonth * m));
     autoData.push(Math.round(autoTime + (residual * timesPerMonth * m) + (maintPerMonth * m)));
+  }
+
+  const annotations = {};
+  if (breakEvenMonths && breakEvenMonths <= 24) {
+    annotations.breakEven = {
+      type: 'line', xMin: breakEvenMonths, xMax: breakEvenMonths,
+      borderColor: '#fbbf24', borderWidth: 2, borderDash: [6, 4],
+      label: { display: true, content: '損益分岐点 (' + breakEvenMonths.toFixed(1) + 'ヶ月)', color: '#fbbf24', font: { size: 11 }, position: 'start', yAdjust: -10 }
+    };
   }
 
   chart = new Chart(ctx, {
@@ -624,73 +652,28 @@ function drawChart(taskTime, residual, timesPerMonth, autoTime, maintPerMonth, b
       labels: labels,
       datasets: [
         {
-          label: '手作業（累積）',
-          data: manualData,
-          borderColor: '#f87171',
-          backgroundColor: 'rgba(248,113,113,0.1)',
-          fill: false,
-          tension: 0.1,
-          pointRadius: 0,
-          borderWidth: 2.5
+          label: '手作業（累積）', data: manualData,
+          borderColor: '#f87171', fill: { target: 1, above: 'rgba(248,113,113,0.08)' },
+          tension: 0.1, pointRadius: 0, borderWidth: 2.5
         },
         {
-          label: '自動化（累積）',
-          data: autoData,
-          borderColor: '#4ade80',
-          backgroundColor: 'rgba(74,222,128,0.1)',
-          fill: false,
-          tension: 0.1,
-          pointRadius: 0,
-          borderWidth: 2.5
+          label: '自動化（累積）', data: autoData,
+          borderColor: '#4ade80', fill: false,
+          tension: 0.1, pointRadius: 0, borderWidth: 2.5
         }
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: true,
+      responsive: true, maintainAspectRatio: true,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: {
-          labels: { color: '#aaa', font: { size: 12 } }
-        },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              return ctx.dataset.label + ': ' + formatTime(ctx.raw);
-            }
-          }
-        },
-        annotation: breakEvenMonths && breakEvenMonths <= 24 ? {
-          annotations: {
-            breakEven: {
-              type: 'line',
-              xMin: breakEvenMonths,
-              xMax: breakEvenMonths,
-              borderColor: '#fbbf24',
-              borderWidth: 1.5,
-              borderDash: [6,4],
-              label: {
-                display: true,
-                content: '損益分岐点',
-                color: '#fbbf24',
-                font: { size: 11 }
-              }
-            }
-          }
-        } : {}
+        legend: { labels: { color: '#aaa', font: { size: 12 } } },
+        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ': ' + formatTime(c.raw); } } },
+        annotation: { annotations: annotations }
       },
       scales: {
-        x: {
-          ticks: { color: '#666', maxTicksLimit: 12 },
-          grid: { color: '#1a1a1a' }
-        },
-        y: {
-          ticks: {
-            color: '#666',
-            callback: function(v) { return formatTime(v); }
-          },
-          grid: { color: '#1a1a1a' }
-        }
+        x: { ticks: { color: '#666', maxTicksLimit: 12 }, grid: { color: '#1a1a1a' } },
+        y: { ticks: { color: '#666', callback: function(v) { return formatTime(v); } }, grid: { color: '#1a1a1a' } }
       }
     }
   });
