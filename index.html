@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自動化ROI計算機 — この作業、自動化すべき？</title>
+<meta name="description" content="手作業にかかる時間と頻度を入力するだけ。自動化の損益分岐点を即座に計算して、xkcd風チャートで可視化します。">
+<meta property="og:title" content="自動化ROI計算機">
+<meta property="og:description" content="この作業、自動化すべき？ 損益分岐点を即計算。">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0a;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+.container { max-width: 840px; margin: 0 auto; padding: 24px 16px; }
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.subtitle {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+.meme-quote {
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  font-style: italic;
+  margin-bottom: 24px;
+  padding: 12px;
+  border-left: 3px solid #333;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Input Section --- */
+.input-section {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.input-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #ccc;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+.form-group { display: flex; flex-direction: column; }
+.form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+.form-group .unit {
+  font-size: 11px;
+  color: #666;
+  margin-top: 4px;
+}
+input[type="number"], select {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 16px;
+  padding: 10px 12px;
+  width: 100%;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus, select:focus { outline: none; border-color: #60a5fa; }
+select { cursor: pointer; }
+select option { background: #141414; }
+
+.preset-section {
+  margin-bottom: 20px;
+}
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.preset-chip {
+  padding: 6px 14px;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #a0a0d0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.preset-chip:hover {
+  background: #2a2a4e;
+  border-color: #60a5fa;
+  color: #60a5fa;
+}
+
+/* --- Button --- */
+.btn-calc {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 20px;
+}
+.btn-calc:hover { opacity: 0.9; }
+
+/* --- Results --- */
+.results { display: none; margin-top: 32px; }
+.results.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Verdict */
+.verdict-card {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 28px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.verdict-emoji { font-size: 48px; margin-bottom: 8px; }
+.verdict-text {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.verdict-sub { font-size: 14px; color: #888; line-height: 1.6; }
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-box {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #60a5fa;
+}
+.stat-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* Chart */
+.chart-section {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.chart-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #ccc;
+}
+canvas { width: 100% !important; max-height: 320px; }
+
+/* Breakdown */
+.breakdown-section {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.breakdown-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #ccc;
+}
+.breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.breakdown-table th, .breakdown-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #222;
+  font-size: 13px;
+}
+.breakdown-table th {
+  color: #888;
+  font-weight: 500;
+  font-size: 12px;
+}
+.highlight-row { background: #0c1a3d; }
+.text-green { color: #4ade80; }
+.text-red { color: #f87171; }
+.text-yellow { color: #fbbf24; }
+.text-blue { color: #60a5fa; }
+
+/* Tips */
+.tips-section {
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.tips-section h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #ccc;
+}
+.tip-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #222;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.tip-item:last-child { border-bottom: none; }
+.tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 24px;
+  color: #555;
+  font-size: 12px;
+}
+.badges {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #141414;
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #888;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>自動化ROI計算機</h1>
+  <p class="subtitle">この作業、自動化すべき？ 損益分岐点を即計算</p>
+  <div class="meme-quote">
+    「5分で終わる作業を、2時間かけて自動化するスクリプトを書いてしまう」<br>
+    ― エンジニアあるある
+  </div>
+
+  <div class="input-section">
+    <div class="preset-section">
+      <label style="font-size:13px;color:#aaa;">よくある作業プリセット:</label>
+      <div class="preset-chips">
+        <span class="preset-chip" onclick="applyPreset(5, 'daily', 30, 'min')">日次レポート作成 (5分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(15, 'weekly', 60, 'min')">週次データ集計 (15分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(2, 'daily', 120, 'min')">メール振り分け (2分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(30, 'weekly', 180, 'min')">請求書処理 (30分/週)</span>
+        <span class="preset-chip" onclick="applyPreset(10, 'daily', 90, 'min')">テストデータ作成 (10分/日)</span>
+        <span class="preset-chip" onclick="applyPreset(60, 'monthly', 480, 'min')">月次レポート (60分/月)</span>
+      </div>
+    </div>
+
+    <h2>あなたの作業を入力</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>1回あたりの作業時間</label>
+        <input type="number" id="taskTime" min="1" max="999" value="" placeholder="例: 5">
+        <span class="unit">分</span>
+      </div>
+      <div class="form-group">
+        <label>作業の頻度</label>
+        <select id="taskFreq">
+          <option value="daily">毎日</option>
+          <option value="weekdays">平日のみ</option>
+          <option value="weekly">週1回</option>
+          <option value="biweekly">隔週</option>
+          <option value="monthly">月1回</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>自動化にかかる見込み時間</label>
+        <input type="number" id="autoTime" min="1" max="9999" value="" placeholder="例: 120">
+        <span class="unit">分（スクリプト作成＋テスト＋デバッグの合計）</span>
+      </div>
+      <div class="form-group">
+        <label>自動化の時間単位</label>
+        <select id="autoTimeUnit">
+          <option value="min">分</option>
+          <option value="hour">時間</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:16px;">
+      <div class="form-group">
+        <label>自動化後の残作業時間（確認・手直し等）</label>
+        <input type="number" id="residualTime" min="0" max="999" value="0" placeholder="0">
+        <span class="unit">分/回（完全自動化なら0）</span>
+      </div>
+      <div class="form-group">
+        <label>メンテナンス頻度の見込み</label>
+        <select id="maintFreq">
+          <option value="none">メンテ不要</option>
+          <option value="low">低（月1回 15分）</option>
+          <option value="mid" selected>中（月2回 30分）</option>
+          <option value="high">高（週1回 30分）</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-calc" onclick="calculate()">計算する</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+
+    <div class="verdict-card" id="verdictCard">
+      <div class="verdict-emoji" id="verdictEmoji"></div>
+      <div class="verdict-text" id="verdictText"></div>
+      <div class="verdict-sub" id="verdictSub"></div>
+    </div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="chart-section">
+      <h2>累積時間の推移（手作業 vs 自動化）</h2>
+      <canvas id="roiChart"></canvas>
+    </div>
+
+    <div class="breakdown-section">
+      <h2>詳細内訳</h2>
+      <table class="breakdown-table">
+        <thead>
+          <tr><th>項目</th><th>手作業</th><th>自動化</th><th>差分</th></tr>
+        </thead>
+        <tbody id="breakdownBody"></tbody>
+      </table>
+    </div>
+
+    <div class="tips-section" id="tipsSection">
+      <h2>アドバイス</h2>
+      <div id="tipsList"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <p>自動化ROI計算機 — ブラウザ完結で計算</p>
+    <div class="badges">
+      <span class="trust-badge">&#x1f512; API不要</span>
+      <span class="trust-badge">&#x1f4bb; ブラウザ完結</span>
+      <span class="trust-badge">&#x1f6ab; データ送信なし</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+// ============================================================
+// Automation ROI Calculator
+// ============================================================
+
+let chart = null;
+
+function applyPreset(taskMin, freq, autoMin, autoUnit) {
+  document.getElementById('taskTime').value = taskMin;
+  document.getElementById('taskFreq').value = freq;
+  document.getElementById('autoTime').value = autoMin;
+  document.getElementById('autoTimeUnit').value = autoUnit;
+  document.getElementById('residualTime').value = 0;
+}
+
+function getFreqPerYear(freq) {
+  switch(freq) {
+    case 'daily': return 365;
+    case 'weekdays': return 260;
+    case 'weekly': return 52;
+    case 'biweekly': return 26;
+    case 'monthly': return 12;
+    default: return 52;
+  }
+}
+
+function getFreqLabel(freq) {
+  switch(freq) {
+    case 'daily': return '毎日';
+    case 'weekdays': return '平日';
+    case 'weekly': return '週1';
+    case 'biweekly': return '隔週';
+    case 'monthly': return '月1';
+    default: return freq;
+  }
+}
+
+function getMaintMinPerMonth(maint) {
+  switch(maint) {
+    case 'none': return 0;
+    case 'low': return 15;
+    case 'mid': return 30;
+    case 'high': return 120;
+    default: return 30;
+  }
+}
+
+function formatTime(minutes) {
+  if (minutes < 60) return Math.round(minutes) + '分';
+  if (minutes < 1440) return (minutes / 60).toFixed(1) + '時間';
+  return (minutes / 60).toFixed(0) + '時間';
+}
+
+function calculate() {
+  const taskTime = parseFloat(document.getElementById('taskTime').value);
+  const freq = document.getElementById('taskFreq').value;
+  const autoTimeRaw = parseFloat(document.getElementById('autoTime').value);
+  const autoUnit = document.getElementById('autoTimeUnit').value;
+  const residual = parseFloat(document.getElementById('residualTime').value) || 0;
+  const maintFreq = document.getElementById('maintFreq').value;
+
+  if (!taskTime || taskTime <= 0) { alert('作業時間を入力してください'); return; }
+  if (!autoTimeRaw || autoTimeRaw <= 0) { alert('自動化時間を入力してください'); return; }
+
+  // Convert all to minutes
+  const autoTime = autoUnit === 'hour' ? autoTimeRaw * 60 : autoTimeRaw;
+  const timesPerYear = getFreqPerYear(freq);
+  const timesPerMonth = timesPerYear / 12;
+  const maintPerMonth = getMaintMinPerMonth(maintFreq);
+
+  // Manual: time per occurrence * frequency
+  const manualPerYear = taskTime * timesPerYear;
+  const manualPerMonth = taskTime * timesPerMonth;
+
+  // Automated: initial cost + residual per occurrence + maintenance
+  const autoSavingsPerOccurrence = taskTime - residual;
+  const netSavingsPerMonth = (autoSavingsPerOccurrence * timesPerMonth) - maintPerMonth;
+  const netSavingsPerYear = netSavingsPerMonth * 12;
+
+  // Break-even point (in months)
+  let breakEvenMonths = null;
+  if (netSavingsPerMonth > 0) {
+    breakEvenMonths = autoTime / netSavingsPerMonth;
+  }
+
+  // 1-year totals
+  const manualTotal1Y = manualPerYear;
+  const autoTotal1Y = autoTime + (residual * timesPerYear) + (maintPerMonth * 12);
+  const savings1Y = manualTotal1Y - autoTotal1Y;
+
+  // 3-year totals
+  const manualTotal3Y = manualPerYear * 3;
+  const autoTotal3Y = autoTime + (residual * timesPerYear * 3) + (maintPerMonth * 36);
+  const savings3Y = manualTotal3Y - autoTotal3Y;
+
+  // ROI percentage
+  const roi1Y = autoTime > 0 ? ((savings1Y / autoTime) * 100) : 0;
+
+  // --- Verdict ---
+  let verdict, emoji, sub, verdictColor;
+  if (breakEvenMonths !== null && breakEvenMonths <= 1) {
+    emoji = '&#x1f680;';
+    verdict = '今すぐ自動化すべき！';
+    sub = `${formatTime(autoTime)}の投資が、わずか${breakEvenMonths.toFixed(1)}ヶ月で回収。1年で${formatTime(savings1Y)}の節約。`;
+    verdictColor = '#4ade80';
+  } else if (breakEvenMonths !== null && breakEvenMonths <= 3) {
+    emoji = '&#x2705;';
+    verdict = '自動化する価値あり';
+    sub = `${breakEvenMonths.toFixed(1)}ヶ月で元が取れる。3ヶ月以内の回収は十分に合理的。`;
+    verdictColor = '#4ade80';
+  } else if (breakEvenMonths !== null && breakEvenMonths <= 6) {
+    emoji = '&#x1f914;';
+    verdict = '判断が分かれるライン';
+    sub = `回収まで${breakEvenMonths.toFixed(1)}ヶ月。学習目的やストレス軽減も考慮して判断を。`;
+    verdictColor = '#fbbf24';
+  } else if (breakEvenMonths !== null && breakEvenMonths <= 12) {
+    emoji = '&#x26a0;&#xfe0f;';
+    verdict = '慎重に検討を';
+    sub = `回収に${breakEvenMonths.toFixed(1)}ヶ月かかる。部分自動化や、もっと簡単な方法がないか再検討。`;
+    verdictColor = '#f59e0b';
+  } else {
+    emoji = '&#x274c;';
+    verdict = '手作業のままでOK';
+    sub = breakEvenMonths ? `回収に${breakEvenMonths.toFixed(1)}ヶ月。自動化コストが節約を上回る可能性大。` : 'メンテナンスコストが節約分を上回っています。';
+    verdictColor = '#f87171';
+  }
+
+  const vc = document.getElementById('verdictCard');
+  document.getElementById('verdictEmoji').innerHTML = emoji;
+  document.getElementById('verdictText').textContent = verdict;
+  document.getElementById('verdictText').style.color = verdictColor;
+  document.getElementById('verdictSub').textContent = sub;
+
+  // --- Stats ---
+  const sg = document.getElementById('statsGrid');
+  sg.innerHTML = '';
+  addStat(sg, breakEvenMonths ? breakEvenMonths.toFixed(1) + 'ヶ月' : '∞', '損益分岐点', breakEvenMonths && breakEvenMonths <= 3 ? '#4ade80' : breakEvenMonths && breakEvenMonths <= 6 ? '#fbbf24' : '#f87171');
+  addStat(sg, formatTime(savings1Y), '1年間の節約', savings1Y > 0 ? '#4ade80' : '#f87171');
+  addStat(sg, roi1Y > 0 ? '+' + Math.round(roi1Y) + '%' : Math.round(roi1Y) + '%', '1年ROI', roi1Y > 0 ? '#60a5fa' : '#f87171');
+  addStat(sg, formatTime(savings3Y), '3年間の節約', savings3Y > 0 ? '#4ade80' : '#f87171');
+
+  // --- Chart ---
+  drawChart(taskTime, residual, timesPerMonth, autoTime, maintPerMonth, breakEvenMonths);
+
+  // --- Breakdown Table ---
+  const bb = document.getElementById('breakdownBody');
+  bb.innerHTML = '';
+  addRow(bb, '1回あたり作業時間', formatTime(taskTime), formatTime(residual), formatTime(taskTime - residual) + ' 節約', false);
+  addRow(bb, '月間作業回数', Math.round(timesPerMonth) + '回', Math.round(timesPerMonth) + '回', '―', false);
+  addRow(bb, '月間作業時間', formatTime(manualPerMonth), formatTime(residual * timesPerMonth), formatTime(manualPerMonth - residual * timesPerMonth) + ' 節約', false);
+  addRow(bb, '月間メンテナンス', '0分', formatTime(maintPerMonth), '+ ' + formatTime(maintPerMonth), false);
+  addRow(bb, '初期構築コスト', '0分', formatTime(autoTime), '+ ' + formatTime(autoTime), false);
+  addRow(bb, '1年間の合計', formatTime(manualTotal1Y), formatTime(autoTotal1Y), (savings1Y >= 0 ? '' : '- ') + formatTime(Math.abs(savings1Y)), true);
+  addRow(bb, '3年間の合計', formatTime(manualTotal3Y), formatTime(autoTotal3Y), (savings3Y >= 0 ? '' : '- ') + formatTime(Math.abs(savings3Y)), true);
+
+  // --- Tips ---
+  const tl = document.getElementById('tipsList');
+  tl.innerHTML = '';
+  if (breakEvenMonths && breakEvenMonths > 6) {
+    addTip(tl, '&#x1f4a1;', '部分自動化を検討: 全工程を自動化せず、最も時間がかかるステップだけ自動化すると構築コストが大幅に下がることがある');
+    addTip(tl, '&#x1f916;', 'AI活用で構築を高速化: Claude CodeやGitHub Copilotを使えば、自動化スクリプトの構築時間を1/3〜1/5に短縮できる');
+  }
+  if (autoTime > 120) {
+    addTip(tl, '&#x23f0;', '構築時間の見積もりを再確認: エンジニアは自動化時間を過小評価しがち。テスト・エッジケース対応・ドキュメント作成も含めて見積もりを');
+  }
+  if (maintPerMonth > 60) {
+    addTip(tl, '&#x1f527;', 'メンテナンスコストに注意: 外部API連携やスクレイピングは仕様変更でメンテ頻度が上がりやすい。API公式SDKやWebhookの活用を検討');
+  }
+  if (taskTime <= 2 && timesPerYear >= 260) {
+    addTip(tl, '&#x26a1;', 'マイクロタスクの罠: 1回2分以下の作業は「気にならない」けど年間だと' + formatTime(manualPerYear) + '。ショートカットキーやテンプレートで半自動化するのが最適解かも');
+  }
+  if (breakEvenMonths && breakEvenMonths <= 1) {
+    addTip(tl, '&#x1f389;', '高ROI案件。自動化後は同じパターンを他の作業にも横展開できないか検討を');
+  }
+  if (savings1Y > 0) {
+    const hourlyRate = 4000; // エンジニア時給想定
+    const moneySaved = Math.round((savings1Y / 60) * hourlyRate);
+    addTip(tl, '&#x1f4b0;', '金額換算（時給' + hourlyRate.toLocaleString() + '円想定）: 1年で約' + moneySaved.toLocaleString() + '円分の時間を節約');
+  }
+  addTip(tl, '&#x1f4ca;', 'xkcd "Is It Worth the Time?" の法則: 週5回の作業なら、1回1分短縮するだけで5年で21時間の節約になる');
+
+  // Show
+  document.getElementById('results').classList.add('active');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+}
+
+function addStat(container, value, label, color) {
+  container.innerHTML += '<div class="stat-box"><div class="stat-value" style="color:' + color + '">' + value + '</div><div class="stat-label">' + label + '</div></div>';
+}
+
+function addRow(tbody, label, manual, auto, diff, highlight) {
+  const cls = highlight ? ' class="highlight-row"' : '';
+  tbody.innerHTML += '<tr' + cls + '><td>' + label + '</td><td>' + manual + '</td><td>' + auto + '</td><td>' + diff + '</td></tr>';
+}
+
+function addTip(container, icon, text) {
+  container.innerHTML += '<div class="tip-item"><span class="tip-icon">' + icon + '</span><span>' + text + '</span></div>';
+}
+
+function drawChart(taskTime, residual, timesPerMonth, autoTime, maintPerMonth, breakEvenMonths) {
+  const ctx = document.getElementById('roiChart').getContext('2d');
+  if (chart) chart.destroy();
+
+  const months = 24;
+  const labels = [];
+  const manualData = [];
+  const autoData = [];
+
+  for (let m = 0; m <= months; m++) {
+    labels.push(m + 'ヶ月');
+    manualData.push(Math.round(taskTime * timesPerMonth * m));
+    autoData.push(Math.round(autoTime + (residual * timesPerMonth * m) + (maintPerMonth * m)));
+  }
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '手作業（累積）',
+          data: manualData,
+          borderColor: '#f87171',
+          backgroundColor: 'rgba(248,113,113,0.1)',
+          fill: false,
+          tension: 0.1,
+          pointRadius: 0,
+          borderWidth: 2.5
+        },
+        {
+          label: '自動化（累積）',
+          data: autoData,
+          borderColor: '#4ade80',
+          backgroundColor: 'rgba(74,222,128,0.1)',
+          fill: false,
+          tension: 0.1,
+          pointRadius: 0,
+          borderWidth: 2.5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: '#aaa', font: { size: 12 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ctx.dataset.label + ': ' + formatTime(ctx.raw);
+            }
+          }
+        },
+        annotation: breakEvenMonths && breakEvenMonths <= 24 ? {
+          annotations: {
+            breakEven: {
+              type: 'line',
+              xMin: breakEvenMonths,
+              xMax: breakEvenMonths,
+              borderColor: '#fbbf24',
+              borderWidth: 1.5,
+              borderDash: [6,4],
+              label: {
+                display: true,
+                content: '損益分岐点',
+                color: '#fbbf24',
+                font: { size: 11 }
+              }
+            }
+          }
+        } : {}
+      },
+      scales: {
+        x: {
+          ticks: { color: '#666', maxTicksLimit: 12 },
+          grid: { color: '#1a1a1a' }
+        },
+        y: {
+          ticks: {
+            color: '#666',
+            callback: function(v) { return formatTime(v); }
+          },
+          grid: { color: '#1a1a1a' }
+        }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
